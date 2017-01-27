@@ -1,0 +1,5 @@
+---
+- name: restart elasticsearch
+  action: service name=elasticsearch state=restarted
+- name: restart logstash
+  action: service name=logstash state=restarted

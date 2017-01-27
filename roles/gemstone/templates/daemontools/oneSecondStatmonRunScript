@@ -1,0 +1,14 @@
+#!/bin/bash
+export GS_HOME=/opt/git/GsDevKit_home/
+source ${GS_HOME}/bin/defGsDevKit.env
+stonePath=$GS_SERVER_STONES/{{stoneName}}
+pushd $stonePath $stonePath >& /dev/null
+source $stonePath/stone.env
+popd >& /dev/null
+
+$GEMSTONE/bin/waitstone $GEMSTONE_NAME 2
+# Create the stats directory if it's not there
+mkdir -p /home/{{user}}/stats/1-second
+chown -R {{user}}:{{user}} /home/{{user}}/stats
+cd /home/{{user}}/stats/1-second
+exec setuidgid {{user}} fghack $GEMSTONE/bin/statmonitor $GEMSTONE_NAME -rAzq -h 1 -i 1

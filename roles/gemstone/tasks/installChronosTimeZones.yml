@@ -1,0 +1,22 @@
+- name: add the github ssh key to known hosts
+  shell: ssh-keyscan -H github.com > /etc/ssh/ssh_known_hosts
+- name: copy in the time-zones directory for chronos
+  git:
+    repo=https://github.com/pdebruic/ChronosTimeZones.git
+    dest=/opt/ChronosTimeZones
+    depth=1
+    update=yes
+- name: set the ownership of the chronos timezones
+  file:
+    state=directory
+    path=/opt/ChronosTimeZones
+    recurse=yes
+    owner={{deploy_user}}
+    group={{deploy_user}}
+- name: link the timezone rules into the gemstone directory
+  file:
+    state=link
+    src=/opt/ChronosTimeZones/time-zones
+    dest="{{extent_path}}/time-zones"
+    owner={{deploy_user}}
+    group={{deploy_user}}

@@ -1,0 +1,137 @@
+---   
+
+    - name: Add deployment user
+      user:
+        name={{deploy_user}}
+        password=$deploy_password
+        shell=/bin/bash
+        home=/home/{{deploy_user}}
+
+    - name: copy up the bashrc file
+      copy:
+        src=.bashrc
+        dest=/home/{{deploy_user}}/
+        owner={{deploy_user}}
+        group={{deploy_user}}
+
+    - name: copy up the screenrc file
+      copy:
+        src=.screenrc
+        dest=/home/{{deploy_user}}/
+        owner={{deploy_user}}
+        group={{deploy_user}}
+
+    - name: add the deploy user to the www-data group
+      user:
+        name={{deploy_user}}
+        groups={{www_user}}
+        append=yes
+        
+    - name: Add authorized deploy key
+      authorized_key:
+        user={{deploy_user}}
+        key="{{ lookup('file', 'id_rsa.pub') }}"
+        
+    - name: Remove sudo group rights
+      lineinfile:
+        dest=/etc/sudoers
+        regexp="^%sudo"
+        state=absent
+        
+    - name: Add deploy user to sudoers
+      lineinfile:
+        dest=/etc/sudoers
+        regexp="{{deploy_user}} ALL"
+        line="{{deploy_user}} ALL=NOPASSWD:ALL"
+        state=present
+        
+    - name: Disallow password authentication
+      lineinfile:
+        dest=/etc/ssh/sshd_config
+        regexp="^PasswordAuthentication"
+        line="PasswordAuthentication no"
+        state=present        
+
+ 
+    - name: Set the hostname
+      hostname: name={{ inventory_hostname }}
+      
+
+    - name: update apt cache
+      apt:
+        update_cache=yes
+        upgrade=dist
+        cache_valid_time=3600
+        
+    - name: install preliminary packages
+      apt: pkg={{item}} state=installed
+      with_items:
+        - fail2ban
+        - mosh
+        - htop
+        - screen
+        - aptitude
+        - emacs
+        - daemontools
+        - git-core
+        - python-software-properties
+        - rsync
+        - openssl
+        - sudo
+        - curl
+        - wget
+        - ufw
+        - ntp
+        - build-essential
+        - git-annex
+      
+    - name: Install unattended-upgrades
+      apt:
+        pkg=unattended-upgrades
+        state=present
+        
+    - name: Adjust APT update intervals
+      copy:
+        src=config/apt_periodic
+        dest=/etc/apt/apt.conf.d/10periodic
+        
+    - name: Make sure unattended-upgrades only installs from $ubuntu_release security
+      lineinfile:
+        dest=/etc/apt/apt.conf.d/50unattended-upgrades
+        regexp="$ubuntu_release-updates"
+        state=absent
+        
+    - name: Setup ufw
+      shell: ufw allow 22/tcp
+      
+    - name: Setup ufw
+      shell: ufw allow 443/tcp
+      
+    - name: Setup ufw
+      shell: ufw allow 60023/udp
+      
+    - name: Enable ufw
+      shell: echo 'y' | ufw enable
+
+    - name: Set timezone to UTC
+      shell: echo 'Etc/UTC' | tee /etc/timezone
+
+    - name: make tzdata reconfigure itself unattended
+      shell: dpkg-reconfigure --frontend noninteractive tzdata
+      
+    - name: Disallow root SSH access
+      lineinfile:
+        dest=/etc/ssh/sshd_config
+        regexp="^PermitRootLogin"
+        line="PermitRootLogin no"
+        state=present
+    
+    - name: reboot the server
+      shell: sleep 2 && shutdown -r now
+      async: 1
+      poll: 0
+      ignore_errors: true
+
+    - name: wait for the server to reboot
+      local_action: wait_for host={{ inventory_hostname }} state=started delay=30 timeout=300
+      

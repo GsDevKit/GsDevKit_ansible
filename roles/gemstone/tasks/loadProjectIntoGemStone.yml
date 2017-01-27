@@ -1,0 +1,22 @@
+---
+- name: create the project load script
+  template:
+    src=topazSeasideLoadScript.st
+    dest=/opt/scripts/topazSeasideLoadScript.st
+    owner={{deploy_user}}
+    group={{deploy_user}}
+
+    
+- name: upload the project install script
+  template:
+    src=installSeasideForGemstone.sh
+    dest=/opt/scripts/installSeasideForGemstone.sh
+    owner={{deploy_user}}
+    group={{deploy_user}}
+    mode=0755
+
+  
+- name: load project into gemstone
+  shell:
+    /opt/scripts/installSeasideForGemstone.sh
+    creates=/opt/scripts/seasideLoaded  

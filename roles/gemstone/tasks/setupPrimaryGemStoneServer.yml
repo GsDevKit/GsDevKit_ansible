@@ -1,0 +1,38 @@
+- name: copy in the gemstone primary run script
+  template:
+    src=daemontools/gemStonePrimaryRunScript
+    dest="{{daemontools_template_dir}}/gsGemstone/run"
+    mode=0755
+    
+- include: copyExistingExtent.yml
+  when: copy_existing_extent
+
+- include: loadProjectIntoGemstone.yml
+  when: load_project_into_image
+
+- name: make the logsender daemontools directory
+  file:
+    state=directory
+    dest="{{daemontools_template_dir}}/logsender/log"
+  tags: hotStandby
+
+- name: copy in the logsender script
+  template:
+    src=daemontools/logSenderRunScript
+    dest="{{daemontools_template_dir}}/logsender/run"
+    mode=0755
+  tags: hotStandby
+
+- name: copy in the logsender process logging script
+  copy:
+    src=daemontools/logRunScript
+    dest="{{daemontools_template_dir}}/logsender/log/run"
+    mode=0755
+  tags: hotStandby
+  
+- name: link the logsender directory into the service directory
+  file:
+    src="{{daemontools_template_dir}}/logsender"
+    dest="{{daemontools_service_dir}}/logsender"
+    state=link
+  tags: hotStandby

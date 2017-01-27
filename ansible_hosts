@@ -1,0 +1,6 @@
+#add your hosts and groups here
+[primary]
+li641-229.members.linode.com 
+
+[secondary]
+li120-88.members.linode.com 

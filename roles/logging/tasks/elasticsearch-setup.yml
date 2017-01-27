@@ -1,0 +1,21 @@
+---
+- name: ensure apt cache is up to date
+  apt: update_cache=yes cache_valid_time=3600
+    
+- name: ensure app apt dependencies are installed
+  apt: pkg={{item}}
+  with_items:
+    - openjdk-7-jre
+    - python-software-properties
+
+- name: ensure we have the elasticsearch .deb
+  get_url:
+    url="https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-{{es_version}}.deb"
+    dest="/tmp/elasticsearch-{{es_version}}.deb"
+    mode=0644
+
+- name: ensure elasticsearch is installed
+  shell:
+    dpkg -i "/tmp/elasticsearch-{{es_version}}.deb"
+    creates=/etc/elasticsearch
+  notify: restart elasticsearch

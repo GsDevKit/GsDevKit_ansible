@@ -1,0 +1,36 @@
+---
+- name: ensure apt cache is up to date
+  apt:
+    update_cache=yes
+    cache_valid_time=3600
+  
+- name: ensure app apt dependencies are installed
+  apt: pkg={{item}} state=installed
+  with_items:
+    - python-software-properties
+    - git
+    - nginx
+
+- name: add the github ssh key to known hosts
+  shell: ssh-keyscan -H github.com > /etc/ssh/ssh_known_hosts
+  
+- name: ensure we have the specified logstash release
+  git:
+    repo=https://github.com/elasticsearch/kibana.git
+    dest=/var/www/kibana
+    update=yes
+    
+- name: ensure kibana nginx site is in place
+  template:
+    src=kibana.conf.j2
+    dest=/etc/nginx/sites-available/kibana
+    mode=0644
+    
+- name: ensure kibana nginx site is enabled
+  file:
+    state=link
+    src=/etc/nginx/sites-available/kibana
+    path=/etc/nginx/sites-enabled/kibana
+    
+- name: ensure nginx config is reloaded by restarting nginx
+  service: name=nginx state=restarted

@@ -1,0 +1,32 @@
+- name: mount the drive for the extents
+  mount:
+    name=/mnt/extents
+    src=/dev/xvdc
+    fstype=ext4
+    state=mounted
+
+- name: mount the drive for the tranlogs
+  mount:
+    name=/mnt/tranlogs
+    src=/dev/xvdd
+    fstype=ext4
+    state=mounted
+
+
+- name: make the delpoy user the owner of the extents mount point
+  file:
+    src=/mnt/extents
+    owner={{deploy_user}}
+    group={{deploy_user}}
+    state=directory
+
+
+- name: make the delpoy user the owner of the extents mount point
+  file:
+    src=/mnt/tranlogs
+    owner={{deploy_user}}
+    group={{deploy_user}}
+    state=directory
+    
+
+    

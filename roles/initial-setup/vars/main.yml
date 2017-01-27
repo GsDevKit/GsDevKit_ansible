@@ -1,0 +1,4 @@
+---
+vars:
+    deploy_password: '$2a$10$QtQVr612ItBcwsToBUeD7.vp5PAza0UoF8Z02oDwFwRK1Fv3/IEI.'
+#"{{hashed_user_password}}"

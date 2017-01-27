@@ -1,0 +1,10 @@
+	location  ^~ /robots.txt {
+                allow all;
+                log_not_found off;
+                access_log off;
+        }
+	## Deny certain User-Agents (case insensitive)
+        ## The ~* makes it case insensitive as opposed to just a ~
+	if ($http_user_agent ~* (Baiduspider|Baiduspider/2.0|MJ12bot|MJ12bot/v1.4.3) ) {
+           return 444;
+     	  }

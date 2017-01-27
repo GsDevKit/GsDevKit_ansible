@@ -1,0 +1,10 @@
+#!/bin/bash
+export GS_HOME=/opt/git/GsDevKit_home/
+source ${GS_HOME}/bin/defGsDevKit.env
+stonePath=$GS_SERVER_STONES/{{stoneName}}
+pushd $stonePath $stonePath >& /dev/null
+source $stonePath/stone.env
+popd >& /dev/null
+
+stopGemstone
+stopnetldi

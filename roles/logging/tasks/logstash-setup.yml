@@ -1,0 +1,67 @@
+---
+- name: ensure apt cache is up to date
+  apt:
+    update_cache=yes
+    cache_valid_time=3600
+    
+- name: ensure app apt dependencies are installed
+  apt: pkg={{item}} state=installed
+  with_items:
+    - python-software-properties
+    - openjdk-7-jre
+    - redis-server
+
+- name: ensure /opt/logstash exists
+  file:
+    path=/opt/logstash
+    state=directory
+    owner=root
+    group=root
+    mode=0755
+
+- name: ensure subdirectories exist
+  file:
+    path="/opt/logstash/{{item}}"
+    owner=root
+    group=root
+    mode=0755
+    state=directory
+  with_items:
+    - bin
+    - etc
+    - share
+
+- name: ensure logstash config is in place
+  copy:
+    src=logstash/logstash.conf
+    dest=/opt/logstash/etc/logstash.conf
+    owner=root
+    group=root
+    mode=0644
+
+- name: ensure logstash upstart job is in place
+  copy:
+    src=logstash/logstash-init
+    dest=/etc/init/logstash.conf
+    owner=root
+    group=root
+    mode=0755
+
+- name: ensure logstash has a logging dir at /var/log/logstash
+  file:
+    path=/var/log/logstash
+    owner=root
+    group=root
+    mode=0755
+    state=directory
+
+- name: ensure we have the specified logstash release
+  get_url:
+    url={{logstash_url}}
+    dest="/opt/logstash/share/{{logstash_file}}"
+
+- name: ensure symlink with no version exists at /opt/logstash/share/logstash.jar
+  file:
+    src="/opt/logstash/share/{{logstash_file}}"
+    dest=/opt/logstash/share/logstash.jar
+    state=link

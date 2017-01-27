@@ -1,0 +1,13 @@
+#!/bin/bash
+# for use by daemontools to start the seaside gems
+export GS_HOME=/opt/git/GsDevKit_home/
+source ${GS_HOME}/bin/defGsDevKit.env
+stonePath=$GS_SERVER_STONES/{{stoneName}}
+pushd $stonePath $stonePath >& /dev/null
+source $stonePath/stone.env
+popd >& /dev/null
+
+scriptpath=$(dirname $0)
+[ -r $scriptpath/config.local ] && source $scriptpath/config.local
+$GEMSTONE/bin/waitstone $GEMSTONE_NAME 2
+exec setuidgid {{user}} $GEMSTONE/seaside/bin/seasideGem30_oodb31 daemon-seaside $GEM_PORT

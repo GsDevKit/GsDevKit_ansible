@@ -1,0 +1,54 @@
+---
+deploy_user: deploy
+www_user: www-data
+daemontools_template_dir: /etc/sv
+daemontools_service_dir: /etc/service
+git_dir: /opt/git
+domain: "{{inventory_hostname}}" #change to something else if you've already set up dns
+seaside_app_name: seaside
+
+
+#openssl key generation varaibles
+#you cannot get a cert for a domain you do not own.  
+key_size: 4096
+csr_country_code: US
+csr_state: OR
+csr_city: Portland
+csr_organization: Seaside app
+csr_organizational_unit: devops
+csr_common_name: "{{domain}}"
+
+#use ansible vault for passwords and keys etc
+
+
+# the list of sites and internal_sites is used to edit the /etc/hosts file.
+# Useful when making nginx act as an https client for gemstone as described here
+# http://www.monkeysnatchbanana.com/2010/06/22/faking-a-https-client-for-glass/
+sites:
+  - localhost
+internal_sites:
+    - name: tropo
+      port: 8880
+    - name: postmark
+      port: 8881
+    - name: stripe
+      port: 8882
+    - name: segmentio
+      port: 8884
+    - name: mandrill
+      port: 8885
+    - name: googleapi
+      port: 8886
+
+      
+sites_to_enable:
+# list the sites that the nginx role will set up and get running.
+# each line should be the name of an nginx conf file in the sites-available dir
+    - "{{domain}}.conf"
+    - tropo.conf
+    - stripe.conf
+    - postmark.conf
+    - mandrill.conf
+    - segmentio.conf
+    - googleapi.conf
+    - localhost.conf

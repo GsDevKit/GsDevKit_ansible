@@ -1,0 +1,30 @@
+---
+  user: "{{deploy_user}}"
+  daemontools_service_dir: /etc/service
+  daemontools_template_dir: /etc/sv
+  gemstone_vers: 3.3.3
+  stoneName: "{{seaside_app_name}}" #default is seaside
+  gemstone_base_dir: /opt/git/GsDevKit_home
+  gemstone_product_dir: "{{gemstone_base_dir}}/shared/downloads/products/GemStone64Bit{{gemstone_vers}}-x86_64.Linux"
+  gemstone_template_dir: "{{gemstone_base_dir}}/sys/default/server/gemstone/templates"
+  gemstone_seaside_dir: "{{gemstone_product_dir}}/seaside"
+  load_project_into_image: true
+  project_name: 'Seaside3'
+  project_repository: 'github://GsDevKit/Seaside31:gs_master/repository'
+  copy_existing_extent: false
+  spc_size: 2000000
+  tmp_obj_size: 150000
+  gemstone_primary_server: "primary.{{domain}}"
+  gemstone_secondary_servers: "seconday.{{domain}}"
+  hot_standby_port: 57332
+  local_extent_path: "/opt/git/GsDevKit_home/server/stones/{{stoneName}}/extents"
+  primary_extent_path: "{{extent_path}}"
+  primary_tranlog_path: "{{tranlog_path}}"
+  secondary_extent_path: "{{extent_path}}/hotStandby"
+  secondary_tranlog_path: "{{tranlog_path}}/hotStandby"
+  tranlog_size: 500
+  user_local_GemStone_key: false
+
+  #todo for hot standby: either set up openvpn or equivalent or make ssh keys on the laptop and opload them where the stone run scripts can find them
+      #this key passphrase should be in ansible vault, probably with the keys themselves but I still do that bit manually.
+      #hot_standby_ssh_key_passphrase: 12345678 

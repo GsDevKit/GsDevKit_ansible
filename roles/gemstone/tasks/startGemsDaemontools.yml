@@ -1,0 +1,19 @@
+---
+# because with_fileglob: runs on the local machine need to do this:
+- name: find all the remaining gs_ directories and make a variable that stores them
+  shell:
+    ls -1d  gs_* executable=/bin/bash
+    chdir={{daemontools_template_dir}}
+  register: gs_dirs
+  
+- name: link the template directories into the service directory
+  file:
+    src="{{daemontools_template_dir}}/{{item}}"
+    dest="{{daemontools_service_dir}}/{{item}}"
+    state=link
+  with_items: "{{gs_dirs.stdout_lines}}"
+    
+#- name: make sure daemontools is running
+#  service:
+#    name=svscan
+#    state=started

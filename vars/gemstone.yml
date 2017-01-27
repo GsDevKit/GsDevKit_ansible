@@ -1,0 +1,14 @@
+---
+servers_and_ports:
+  - name: "{{seaside_app_name}}" #fastcgi gem 1
+    host: localhost
+    port: 9004
+  - name: "{{seaside_app_name}}" #fastcgi gem 2
+    host: localhost
+    port: 9005
+  - name: "{{seaside_app_name}}" #fastcgi gem 3
+    host: localhost
+    port: 9006
+  - name: "{{seaside_app_name}}AncillaryServicesServer" #zinc gem 1
+    host: localhost
+    port: 9012

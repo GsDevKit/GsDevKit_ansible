@@ -1,0 +1,9 @@
+#!/bin/bash
+export GS_HOME=/opt/git/GsDevKit_home/
+source ${GS_HOME}/bin/defGsDevKit.env
+stonePath=$GS_SERVER_STONES/{{stoneName}}
+pushd $stonePath $stonePath >& /dev/null
+source $stonePath/stone.env
+popd >& /dev/null
+
+exec setuidgid {{user}} fghack $GEMSTONE/bin/startlogreceiver -A {{gemstone_primary_server}} -P {{hot_standby_port}} -s {{stoneName}} -T {{secondary_tranlog_path}} -S -C /opt/hotstandby-keys/cert.pem -J /opt/hotstandby-keys/ca.cert.pem -K /opt/hotstandby-keys/key.pem -Q {{hot_standby_ssh_key_passphrase}}

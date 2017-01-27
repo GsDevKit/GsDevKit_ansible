@@ -1,0 +1,21 @@
+- name: make the lc.getcooperation.com directory
+  copy:
+    src=lc.getcooperation.com
+    dest=/var/www/lc.getcooperation.com
+    owner={{www_user}}
+    group={{www_user}}
+
+- name: copy the lc.getcooperation.com.conf file to /var/www/
+  copy:
+    src=sites-available/lc.getcooperation.com.conf
+    dest=/etc/nginx/sites-available/
+    owner={{www_user}}
+    group={{www_user}}
+
+- name: link the lc.getcooperation.com.conf file into sites-enabled
+  file:
+    src=/etc/nginx/sites-available/lc.getcooperation.com.conf
+    dest=/etc/nginx/sites-enabled/lc.getcooperation.com.conf
+    state=link
+    owner={{www_user}}
+    group={{www_user}}

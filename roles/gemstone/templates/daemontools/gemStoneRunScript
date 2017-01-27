@@ -1,0 +1,22 @@
+#!/bin/bash
+export GS_HOME=/opt/git/GsDevKit_home/
+source ${GS_HOME}/bin/defGsDevKit.env
+stonePath=$GS_SERVER_STONES/{{stoneName}}
+pushd $stonePath $stonePath >& /dev/null
+source $stonePath/stone.env
+popd >& /dev/null
+#source {{gemstone_config}}
+
+# check for the license key
+if [ -s $GEMSTONE/seaside/etc/gemstone.secret ]; then
+      . $GEMSTONE/seaside/etc/gemstone.secret
+else
+      echo 'Missing password file $GEMSTONE/seaside/etc/gemstone.secret'
+      exit 1
+ fi
+
+echo "Starting stone: $GEMSTONE_NAME"
+
+setuidgid {{user}} $GEMSTONE/seaside/bin/stopGemstone $GEMSTONE_CURATOR_PASS
+
+exec setuidgid {{user}} fghack $GEMSTONE/bin/startstone $GEMSTONE_NAME -z $GEMSTONE_SYS_CONF -l $GEMSTONE_LOGDIR/$GEMSTONE_NAME.log

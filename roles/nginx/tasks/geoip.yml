@@ -1,0 +1,41 @@
+---
+- name: make geoip data directory
+  file:
+    state=directory
+    path=/opt/geoip
+    owner={{www_user}}
+    group={{www_user}}
+    mode=0755
+- name: get the city db
+  get_url:
+    dest=/opt/geoip/
+    url=http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz
+- name: get the country db
+  get_url:
+    dest=/opt/geoip/
+    url=http://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz
+- name: decompress the city db
+  command:
+    gunzip -f GeoLiteCity.dat.gz
+    chdir=/opt/geoip/
+- name: decompress the country db
+  command:
+    gunzip -f GeoIP.dat.gz
+    chdir=/opt/geoip/
+- name: change the owners of the city db
+  file:
+    path=/opt/geoip/GeoLiteCity.dat
+    owner={{www_user}}
+    group={{www_user}}
+    mode=0644
+- name: change the owners of the country db
+  file:
+    path=/opt/geoip/GeoIP.dat
+    owner={{www_user}}
+    group={{www_user}}
+    mode=0644
+- name: delete the .gz files
+  command:
+    rm {{item}}
+  with_fileglob:
+    - /opt/geoip/*.gz

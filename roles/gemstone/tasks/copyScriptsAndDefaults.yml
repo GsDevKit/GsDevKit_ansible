@@ -1,0 +1,145 @@
+---
+
+#- name: create /etc/default/gemstone
+#  copy:
+#    src=etc/default/gemstone
+#    dest=/etc/default/gemstone
+#    mode=0644
+#  tags:
+#    - scripts
+
+- name: make sure the extent directory exists
+  file:
+    state=directory
+    path={{primary_extent_path}}
+    group{{user}}
+    owner{{user}}
+
+- name: make sure the tranlog directory exists
+  file:
+    state=directory
+    path={{primary_tranlog_path}}
+    group{{user}}
+    owner{{user}}
+
+- name: copy gemstone/seaside run scripts
+  copy:
+    src="{{item}}"
+    dest="{{gemstone_seaside_dir}}/bin/"
+    mode=0755
+  with_fileglob:
+    - seaside/*
+  tags:
+    - scripts
+
+- name: edit the gem.conf template
+  lineinfile:
+    dest="{{gemstone_template_dir}}/gem.conf"
+    regexp=^GEM_TEMPOBJ_CACHE_SIZE
+    line=GEM_TEMPOBJ_CACHE_SIZE=150000;
+  tags:
+    - scripts
+    
+- name: copy in the system.conf file
+  template:
+    src=system.conf
+    dest="{{primary_extent_path}}/"
+    mode=0644
+    owner={{deploy_user}}
+    group={{deploy_user}}
+  tags:
+    - scripts
+
+- name: edit the stone.env template for tranlogs
+  lineinfile:
+    dest="{{gemstone_template_dir}}/stone.env"
+    regexp=^GEMSTONE_TRANLOGDIR
+    line=GEMSTONE_TRANLOGDIR={{primary_tranlog_path}};
+  tags:
+    - scripts
+    
+- name: edit the stone.env template for tranlogs
+  lineinfile:
+    dest="{{gemstone_template_dir}}/stone.env"
+    regexp=^GEMSTONE_DATADIR
+    line=GEMSTONE_DATADIR={{primary_extent_path}};
+  tags:
+    - scripts
+    
+- name: upload the replaceExtent script
+  copy:
+    src=replaceExtent
+    dest=/opt/scripts/
+    mode=0755
+  tags:
+    - scripts
+    
+- name: upload the restartGemstone script
+  copy:
+    src=restartGemStone
+    dest=/opt/scripts/
+    mode=0755
+  tags:
+    - scripts
+    
+- name: upload the haltGemstone script
+  copy:
+    src=haltGemStone
+    dest=/opt/scripts/
+    mode=0755
+  tags:
+    - scripts
+    
+- name: upload the gemstoneStop script
+  copy:
+    src=gemstoneStop
+    dest=/opt/scripts/
+    mode=0755
+  tags:
+    - scripts
+
+- name: upload the backup script
+  template:
+    src=onlinebackup.sh
+    dest=/opt/scripts/onlinebackup.sh
+    owner={{deploy_user}}
+    group={{deploy_user}}
+    mode=0755
+  tags:
+    - scripts
+
+- name: create the hotstandby key directory
+  file:
+    state=directory
+    path=/opt/hotstandby-keys
+    owner={{deploy_user}}
+    group={{deploy_user}}
+  tags:
+    - hotStandby
+    
+- name: copy up the hotstandby key
+  copy:
+    src=hotstandby/key.pem
+    dest=/opt/hotstandby-keys/
+    owner={{deploy_user}}
+    group={{deploy_user}}
+    mode=0400
+  tags: hotStandby
+  
+- name: copy up the hotstandby cert
+  copy:
+    src=hotstandby/cert.pem
+    dest=/opt/hotstandby-keys/
+    owner={{deploy_user}}
+    group={{deploy_user}}
+    mode=0444
+  tags: hotStandby
+  
+- name: copy up the hotstandby ca cert
+  copy:
+    src=hotstandby/demoCA/ca.cert.pem
+    dest=/opt/hotstandby-keys/
+    owner={{deploy_user}}
+    group={{deploy_user}}
+    mode=0444
+  tags: hotStandby

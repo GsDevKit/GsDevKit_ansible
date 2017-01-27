@@ -1,0 +1,116 @@
+---
+- name: change the ownership of /opt/scripts
+  file:
+    state=directory
+    path=/opt/scripts
+    owner={{deploy_user}}
+    group={{deploy_user}}
+  
+    
+- name: make sure git, daemontools, and zip are installed
+  apt: name={{item}} state=present
+  with_items:
+    - git
+    - zip
+    - daemontools-run
+    - daemontools
+    - curl
+    - libuuid1
+    - libxcrypt1
+    - libxml2-utils
+
+- name: link libxcrypt because the GS code looks for /lib/libxcrypt.so
+  file:
+    state=link
+    src=/lib/libxcrypt.so.1
+    dest=/lib/libxcrypt.so
+  ignore_errors: yes
+    
+- name: make the /opt/git directory
+  file:
+    group=deploy
+    owner=deploy
+    path=/opt/git
+    state=directory
+
+- name: install the gsDevKit git repo
+  git:
+    repo=https://github.com/GsDevKit/GsDevKit_home.git
+    dest={{gemstone_base_dir}}
+    update=no #we don't update the repo because gs dev kit has its own update mechanisms
+
+- name: copy up the gemstone install script
+  template:
+    src=installServerScript.sh
+    dest={{gemstone_base_dir}}
+    mode=0755
+    owner={{deploy_user}}
+    group={{deploy_user}}
+
+    
+- name: copy up the gemstone install script
+  template:
+    src=createStoneScript.sh
+    dest={{gemstone_base_dir}}
+    mode=0755
+    owner={{deploy_user}}
+    group={{deploy_user}}
+    
+- name: make the deploy_user the owner of the GsDevKit_home repo
+  file:
+    recurse=yes
+    group={{deploy_user}}
+    owner={{deploy_user}}
+    path={{gemstone_base_dir}}
+
+
+    
+- name: run the installServer script in the GsDevKit_home repo
+  shell:
+    chdir={{gemstone_base_dir}}
+    {{gemstone_base_dir}}/installServerScript.sh
+  become_user: "{{user}}"
+  async: 600
+  poll: 10
+  tags: installServer
+
+    
+- name: create the base stone and gsdevkit directory structure
+  shell:
+    chdir={{gemstone_base_dir}}
+    creates={{gemstone_base_dir}}/{{stoneName}}{{gemstone_vers}}
+    {{gemstone_base_dir}}/createStoneScript.sh
+  async: 600
+  poll: 10
+  become_user: "{{user}}"
+  tags: createRawTodeStone
+  
+- name: copy up the secret key
+  copy:
+    src=gemstone.key
+    dest={{gemstone_seaside_dir}}/etc/gemstone.key
+    mode=0444
+    owner={{deploy_user}}
+    group={{deploy_user}}
+  tags: keys
+  when: use_local_GemStone_key
+  
+- include: copyScriptsAndDefaults.yml
+  
+
+- include: setupStoneDaemontools.yml
+  tags: daemontools
+  
+- include: setupPrimaryGemStoneServer.yml
+  when: gemstone_primary
+  tags: daemontools
+  
+- include: setupSecondaryGemStoneServer.yml
+  when: not gemstone_primary
+  tags: hotStandby
+  
+- include: startStoneDaemontools.yml
+  tags: daemontools
+  
+- include: startGemsDaemontools.yml
+  tags: daemontools

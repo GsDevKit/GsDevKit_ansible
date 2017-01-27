@@ -1,0 +1,25 @@
+---
+- name: make sure /etc/service exists
+  file:
+    state=directory
+    dest="{{daemontools_service_dir}}"
+
+#- name: make sure daemontools is running
+#  service:
+#    name=svscan
+#    state=started
+#    enabled=yes
+    
+- name: link in the netldi directory first
+  file:
+    src="{{daemontools_template_dir}}/gsNetldi"
+    dest="{{daemontools_service_dir}}/gsNetldi"
+    state=link
+
+
+
+- name: link in the gemstone  directory next
+  file:
+    src="{{daemontools_template_dir}}/gsGemstone"
+    dest="{{daemontools_service_dir}}/gsGemstone"
+    state=link

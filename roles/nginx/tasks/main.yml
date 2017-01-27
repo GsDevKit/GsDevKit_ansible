@@ -1,0 +1,169 @@
+---
+- name: remove the old nginx directives
+  file:
+    path=/etc/apt/sources.list.d/{{item}}
+    state=absent
+  with_items:
+    - nginx-stable-precise.list
+    - nginx-stable-precise.list.distUpgrade
+    - nginx.list
+  ignore_errors: true
+  
+- name: add the apt repo for the nginx mainline distribution
+  apt_repository:
+    repo='ppa:nginx/{{nginx_to_remove}}'
+    state=absent
+    
+- name: add the apt repo for the nginx mainline distribution
+  apt_repository:
+    repo='ppa:nginx/{{nginx_to_use}}'
+    state=present
+   
+- name: update apt cache
+  apt: update_cache=yes cache_valid_time=3600
+  
+- name: install webserver packages
+  apt: pkg={{item}} state=latest
+  with_items:
+    - openssl
+    - nginx
+    - zip
+
+- include: geoip.yml
+
+- include: letsEncrypt.yml
+
+  
+- name: copy in the nginx main conf file
+  copy:
+    src=nginx.conf
+    dest=/etc/nginx/
+    owner={{www_user}}
+    group={{www_user}}
+    mode=0644
+
+        
+- name: copy the  seaside app nginx  configurations into sites-available
+  template:
+    src="GemStoneSeasideApp.conf"
+    dest="/etc/nginx/sites-available/{{domain}}.conf"
+    owner={{www_user}}
+    group={{www_user}}
+    mode=0644
+
+
+    
+- name: copy the  external nginx  configurations into sites-available
+  template:
+    src="{{item}}.conf"
+    dest="/etc/nginx/sites-available/{{item}}.conf"
+    owner={{www_user}}
+    group={{www_user}}
+    mode=0644
+  with_items: "{{sites}}"
+
+
+- name: copy the internal nginx  configurations into sites-available
+  template:
+    src="{{item.name}}.conf"
+    dest="/etc/nginx/sites-available/{{item.name}}.conf"
+    owner={{www_user}}
+    group={{www_user}}
+    mode=0644
+  with_items: "{{internal_sites}}"
+  
+- name: copy the ancillary nginx conf files
+  copy:
+    src={{item}}
+    dest=/etc/nginx/sites-available/
+  with_fileglob:
+      - ./sites-available/*
+
+- name: get the list of files in the sites-available directory
+  shell:
+    ls -1 ./*.conf
+    executable=/bin/bash
+    chdir=/etc/nginx/sites-available
+  register: conf_files
+
+- name: remove the default nginx site configu from sites-available
+  file:
+    path=/etc/nginx/sites-available/default
+    state=absent
+  
+- name: link the nginx  configurations into sites-enabled
+  file:
+    state=link
+    src="/etc/nginx/sites-available/{{item}}"
+    dest="/etc/nginx/sites-enabled/{{item}}"
+    owner={{www_user}}
+    group={{www_user}}
+    mode=0644
+  with_items: "{{conf_files.stdout_lines}}"
+  notify:
+    - restart nginx
+    
+- name: add stripe to the hosts file
+  lineinfile:
+    state=present
+    insertafter=EOF
+    dest=/etc/hosts
+    line="127.0.0.1 stripe"
+    regexp='^127\.0\.0\.1 stripe' 
+    
+- name: add postmark to the hosts file
+  lineinfile:
+    state=present
+    insertafter=EOF
+    dest=/etc/hosts
+    line="127.0.0.1 postmark"
+    regexp='^127\.0\.0\.1 postmark' 
+
+- name: add tropo to the hosts file
+  lineinfile:
+    state=present
+    insertafter=EOF
+    dest=/etc/hosts
+    line="127.0.0.1 tropo"
+    regexp='^127\.0\.0\.1 tropo'
+    
+- name: add segmentio to the hosts file
+  lineinfile:
+    state=present
+    insertafter=EOF
+    dest=/etc/hosts
+    line="127.0.0.1 segmentio"
+    regexp='^127\.0\.0\.1 segmentio'
+
+- name: add mandrill to the hosts file
+  lineinfile:
+    state=present
+    insertafter=EOF
+    dest=/etc/hosts
+    line="127.0.0.1 mandrill"
+    regexp='^127\.0\.0\.1 mandrill'
+
+- name: add googleapi for geoip to the hosts file
+  lineinfile:
+    state=present
+    insertafter=EOF
+    dest=/etc/hosts
+    line="127.0.0.1 googleapi"
+    regexp='^127\.0\.0\.1 googleapi' 
+
+
+    
+- name: make sure the www-data user owns the log directories and files
+  shell: executable=/bin/bash chown -R www-data:www-data /var/log/nginx
+  
+- name: make sure the www-data user owns the etc/nginx directory and files
+  shell: executable=/bin/bash chown -R www-data:www-data /etc/nginx
+  
+- name: make the firewall allow connections on 80 if its not already
+  shell: ufw allow 80/tcp
+
+- name: make the firewall allow connections on 443 (SSL) if its not already
+  shell: ufw allow 443/tcp
+
+
+

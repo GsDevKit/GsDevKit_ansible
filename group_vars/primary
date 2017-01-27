@@ -1,0 +1,12 @@
+---
+#domain: example.com
+net_ldi_main: 60377 #primary and secondary use different net ldi ports so you can more easily ssh forward them with tode or GemTools.
+net_ldi_range: 60378:60379
+tarsnap_name: examplePrimary
+tarsnap_backup_dirs: home var/www opt/extents/backups opt/tranlogs
+backup_frequency: hourly
+extent_path: /opt/extents
+tranlog_path: /opt/tranlogs
+tranlog_size: 500
+gemstone_primary: true
+

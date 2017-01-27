@@ -1,0 +1,10 @@
+#!/bin/bash
+sudo svc -d /etc/service/*
+/opt/scripts/gemstoneStop
+sudo service elasticsearch stop
+sudo svc -u /etc/service/gsNetldi
+sudo svc -u /etc/service/gsGemstone
+sudo svc -u /etc/service/gs_*
+sudo  service elasticsearch start
+sudo svstat /etc/service/*
+gslist -lcv

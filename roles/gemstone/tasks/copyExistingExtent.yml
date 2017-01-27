@@ -1,0 +1,45 @@
+---
+
+- name: copy up the stop gemstone script
+  template:
+    src=gemstoneStop
+    dest=/opt/scripts/
+    owner={{deploy_user}}
+    group={{deploy_user}}
+    mode=0755
+
+- name: stop the gemstone server and netldi
+  shell:
+    /opt/scripts/gemstoneStop
+
+
+- name: copy the extent into the proper directory
+  copy:
+    src=latest.zip
+    dest={{primary_extent_path}}/extent0.zip
+    owner={{deploy_user}}
+    group={{deploy_user}}
+    mode=0644
+
+- name: make a copy of the extent before replacing it
+  command:
+    cp extent0.dbf extent0.dbf.bak
+    chdir={{primary_extent_path}}
+  ignore_errors: yes
+  
+- name: extract the extent zip
+  command:
+    unzip -jo latest.zip
+    chdir={{primary_extent_path}}
+
+- name: set the owner of the new extent
+  file:
+    path={{primary_extent_path}}/extent0.dbf
+    owner={{deploy_user}}
+    group={{deploy_user}}
+    mode=0644
+
+- name: move the tranlogs to the right place
+  command:
+    chdir={{primary_extent_path}}
+    mv tranlog*.dbf {{primary_tranlog_path}}/

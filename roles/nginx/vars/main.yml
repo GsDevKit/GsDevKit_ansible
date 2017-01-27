@@ -1,0 +1,6 @@
+---
+
+nginx_to_use: stable
+nginx_to_remove: development
+spdy_or_http2: http2
+#change the nginx.conf to load the geoip module dynamically if you go to use http2 and nginx higher than 1.9.11

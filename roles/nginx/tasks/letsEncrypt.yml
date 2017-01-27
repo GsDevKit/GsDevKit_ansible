@@ -1,0 +1,36 @@
+  - name: ensure the python openssl pkg is installed
+    apt: name=pyopenssl status=present
+
+  - name: create custome diffie hellman parameters for nginx
+    command:
+      openssl dhparam -out "/etc/pki/private/cert/{{domain}}.dhparam.pem" 4096
+      creates="/etc/pki/private/cert/{{domain}}.dhparam.pem"
+    
+  - name: create private key
+    command: openssl genrsa -out "/etc/pki/private/cert/{{domain}}.key" "{{key_size}}"
+      
+  - name: create csr from key
+    command:
+      openssl req -new -SHA256 -subj "/C={{csr_country_code}}/ST={{csr_state}}/L={{csr_city}}/O={{csr_organization}}/OU={{csr_organizational_unit}}/CN=${{csr_common_name}}" -days 3650 -keyout  "/etc/pki/private/cert/{{domain}}.key" -out  "/etc/pki/private/cert/{{domain}}.csr"
+      creates="/etc/pki/private/cert/{{domain}}.csr"
+    notify: reload nginx
+
+  - name: start letsencrypt process by asking them for the info we need to verify this site
+    letsencrypt:
+      account_key: "/etc/pki/private/cert/{{domain}}.key"
+      csr: "/etc/pki/private/csr/{{domain}}.csr"
+      dest: "/etc/httpd/ssl/{{domain}}.crt"
+      register: sample_com_challenge
+      
+  - name: put the data from letsencrypt into the right spot to fulfill the verification challenge
+    copy:
+      dest: "/var/www/{{domain}}/{{ sample_com_challenge['challenge_data']['{{domain}}']['http-01']['resource'] }}"
+      content: "{{ sample_com_challenge['challenge_data']['{{domain}}']['http-01']['resource_value'] }}"
+    when: sample_com_challenge|changed
+
+  - name: finish the letsencrypt verification process and get our keys
+    letsencrypt:
+      account_key: "/etc/pki/private/cert/{{domain}}.key"
+      csr: "/etc/pki/private/csr/{{domain}}.csr"
+      dest: "/etc/httpd/ssl/{{domain}}.crt"
+      data: "{{ sample_com_challenge }}"

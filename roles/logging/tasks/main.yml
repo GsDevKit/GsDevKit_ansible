@@ -1,0 +1,7 @@
+---
+
+    - include: elasticsearch-setup.yml
+    - include: logstash-setup.yml
+    - include: kibana-setup.yml
+
+

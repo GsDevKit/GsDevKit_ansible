@@ -1,0 +1,35 @@
+---
+
+# http server health checks
+- name: make empty http server health check directories
+  file:
+    state=directory
+    dest="{{daemontools_template_dir}}/gs_{{item.name}}-{{item.port}}_health_check/log"
+  with_items: servers_and_ports
+
+- name: make the health check run scripts
+  template:
+    src=httpServerHealthCheck.sh
+    dest="{{daemontools_template_dir}}/gs_{{item.name}}-{{item.port}}_health_check/"
+    mode=0755
+    owner={{deploy_user}}
+    group={{deploy_user}}
+  with_items: servers_and_ports
+
+- name: copy the health check run script
+  copy:
+    src=daemontools/healthCheckRunScript
+    dest="{{daemontools_template_dir}}/gs_{{item.name}}-{{item.port}}_health_check/run"
+    mode=0755
+    owner={{deploy_user}}
+    group={{deploy_user}}
+  with_items: servers_and_ports
+
+- name: copy the health check log script
+  copy:
+    src=daemontools/logRunScript
+    dest="{{daemontools_template_dir}}/gs_{{item.name}}-{{item.port}}_health_check/log/run"
+    mode=0755
+    owner={{deploy_user}}
+    group={{deploy_user}}
+  with_items: servers_and_ports

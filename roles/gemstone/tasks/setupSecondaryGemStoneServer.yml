@@ -1,0 +1,91 @@
+- name: create the backup extent directory
+  file:
+    group={{user}}
+    owner={{user}}
+    path={{secondary_extent_path}}
+    state=directory
+
+- name: create the backup tranlog directory
+  file:
+    group{{user}}
+    owner{{user}}
+    path={{secondary_tranlog_path}}
+    state=directory
+
+- name: copy in the gemstone secondary run script
+  template:
+    src=daemontools/gemStoneSecondaryRunScript
+    dest="{{daemontools_template_dir}}/gsGemstone/run"
+    mode=0755
+
+#cant do this between two servers. so need to copy it down and then back up I guess. or upload a script to do it using the keys
+- name: copy the most recent extent backup from the primary server to the secondary servers
+  synchronize:
+    src=latest.zip
+    dest{{deploy_user}}@{{ansible_hostname}}:{{secondary_extent_path}}/latest.zip
+  
+
+- name: remove all the other dbf files
+  file:
+    path={{seconday_extent_path}}/*.dbf
+    state=absent
+
+    
+- name: unzip the backup
+  shell:
+    chdir={{secondary_extent_path}}
+    unzip -jo latest.zip
+
+- name: get the name of the backup file
+  shell:
+    chdir={{secondary_extent_path}}
+    ls *.dbf
+  register: dbfFileName
+
+- name: rename the dbf file to extent0.dbf
+  command:
+    chdir={{secondary_extent_path}}
+    mv {{item}} extent0.dbf
+  with_items: dbfFileName.stdout_lines
+    
+- name: ensure the deploy user owns the extent
+  file:
+    path={{secondary_extent_path}}/extent0.dbf
+    owner={{deploy_user}}
+    group={{deploy_user}}
+    mode=0600
+
+- name: make the storage directory for the tranlogs from the primary server
+  file:
+    state=directory
+    path={{secondary_tranlog_path}}
+    owner={{deploy_user}}
+    group={{deploy_user}}
+
+- name: move the tranlogs to the right place
+  command:
+    chdir={{secondary_extent_path}}
+    mv tranlog*.dbf {{secondary_tranlog_path}}
+    
+- name: make the logreceiver daemontools directory
+  file:
+    state=directory
+    dest="{{daemontools_template_dir}}/logreceiver/log"
+
+- name: copy in the logreceiver script
+  template:
+    src=daemontools/logReceiverRunScript
+    dest="{{daemontools_template_dir}}/logreceiver/run"
+    mode=0755
+
+- name: copy in the logreciever process logging script
+  copy:
+    src=daemontools/logRunScript
+    dest="{{daemontools_template_dir}}/logreceiver/log/run"
+    mode=0755
+
+- name: link the logreceiver directory into the service directory
+  file:
+    src="{{daemontools_template_dir}}/logreceiver"
+    dest="{{daemontools_service_dir}}/logreceiver"
+    state=link

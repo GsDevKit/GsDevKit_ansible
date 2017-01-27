@@ -1,0 +1,174 @@
+---
+# get the scripts
+- name: make sure the git directory exists
+  file: state=directory dest={{git_dir}}
+
+#- name: install the gsDevKit_daemontools git repo
+#  git:
+#    repo=https://github.com/GsDevKit/GsDevKit_daemontools.git
+#    dest={{git_dir}}
+#    update=yes
+
+
+    
+
+# netldi
+- name: make empty netldi template directory
+  file: state=directory dest="{{daemontools_template_dir}}/gsNetldi/log"
+  
+- name: copy in the ndetldi run script
+  template: src=daemontools/netldiRunScript dest="{{daemontools_template_dir}}/gsNetldi/run" mode=0755
+
+- name: copy in the log run script
+  copy: src=daemontools/logRunScript dest="{{daemontools_template_dir}}/gsNetldi/log/run" mode=0755
+
+# GemStone
+- name: make empty gemstone template directory
+  file: state=directory dest="{{daemontools_template_dir}}/gsGemstone/log"
+
+
+- name: copy in the log run script
+  copy: src=daemontools/logRunScript dest="{{daemontools_template_dir}}/gsGemstone/log/run" mode=0755
+
+  # server gems 
+- name: make empty server template directories
+  file:
+    state=directory
+    dest="{{daemontools_template_dir}}/gstemplate_{{item.name}}/log"
+  with_items: "{{ servers_and_ports }}"
+
+- name: copy in the log run script
+  copy:
+    src=daemontools/logRunScript
+    dest="{{daemontools_template_dir}}/gstemplate_{{item.name}}/log/run"
+    mode=0755
+  with_items: "{{ servers_and_ports }}"
+
+- name: make server directory for each port
+  file:
+    state=directory
+    dest="{{daemontools_template_dir}}/gs_{{item.name}}-{{item.port}}/log"
+  with_items: "{{ servers_and_ports }}"
+
+- name: link the run script into each log directory
+  file:
+    state=link
+    src="{{daemontools_template_dir}}/gstemplate_{{item.name}}/log/run"
+    dest="{{daemontools_template_dir}}/gs_{{item.name}}-{{item.port}}/log/run"
+  with_items: "{{ servers_and_ports }}"
+
+- name: copy in the run scripts
+  template:
+    src="daemontools/serverRunScript"
+    dest="{{daemontools_template_dir}}/gs_{{item.name}}-{{item.port}}/run"
+    mode=0755
+  with_items: "{{ servers_and_ports }}"
+
+# http server health checks
+- name: make empty http server health check directories
+  file:
+    state=directory
+    dest="{{daemontools_template_dir}}/gs_{{item.name}}-{{item.port}}_health_check/log"
+  with_items: "{{ servers_and_ports }}"
+
+- name: make the health check run scripts
+  template:
+    src=httpServerHealthCheck.sh
+    dest="{{daemontools_template_dir}}/gs_{{item.name}}-{{item.port}}_health_check/"
+    mode=0755
+    owner={{deploy_user}}
+    group={{deploy_user}}
+  with_items: "{{ servers_and_ports }}"
+
+- name: copy the health check run script
+  copy:
+    src=daemontools/healthCheckRunScript
+    dest="{{daemontools_template_dir}}/gs_{{item.name}}-{{item.port}}_health_check/run"
+    mode=0755
+    owner={{deploy_user}}
+    group={{deploy_user}}
+  with_items: "{{ servers_and_ports }}"
+
+- name: copy the health check log script
+  copy:
+    src=daemontools/logRunScript
+    dest="{{daemontools_template_dir}}/gs_{{item.name}}-{{item.port}}_health_check/log/run"
+    mode=0755
+    owner={{deploy_user}}
+    group={{deploy_user}}
+  with_items: "{{ servers_and_ports }}"
+    
+    
+# maintenance gem
+- name: make empty maintenance template directory
+  file:
+    state=directory
+    dest="{{daemontools_template_dir}}/gs_maintenance/log"
+    
+- name: copy in the maintenance run script
+  template:
+    src=daemontools/maintenanceGemRunScript
+    dest="{{daemontools_template_dir}}/gs_maintenance/run"
+    mode=0755
+    
+- name: copy in the log run script
+  copy:
+    src=daemontools/logRunScript
+    dest="{{daemontools_template_dir}}/gs_maintenance/log/run"
+    mode=0755
+
+# service gem
+- name: make empty service vm template directory
+  file:
+    state=directory
+    dest="{{daemontools_template_dir}}/gs_servicevm/log"
+    
+- name: copy in the maintenance run script
+  template:
+    src=daemontools/serviceGemRunScript
+    dest="{{daemontools_template_dir}}/gs_servicevm/run"
+    mode=0755
+    
+- name: copy in the log run script
+  copy:
+    src=daemontools/logRunScript
+    dest="{{daemontools_template_dir}}/gs_servicevm/log/run"
+    mode=0755
+
+  
+# statmon 1 
+- name: make empty 1 second statmon directory
+  file:
+    state=directory
+    dest="{{daemontools_template_dir}}/gs_statmon-1/log"
+    
+- name: copy in the one second statmon script.  its log rotates once and hour
+  template:
+    src=daemontools/oneSecondStatmonRunScript
+    dest="{{daemontools_template_dir}}/gs_statmon-1/run"
+    mode=0755
+    
+- name: copy in the log run script
+  copy:
+    src=daemontools/logRunScript
+    dest="{{daemontools_template_dir}}/gs_statmon-1/log/run"
+    mode=0755
+
+  
+# statmon 60
+- name: make empty 60 second statmon directory
+  file:
+    state=directory
+    dest="{{daemontools_template_dir}}/gs_statmon-60/log"
+    
+- name: copy in the sixty second statmon script. its log rotates once a day
+  template:
+    src=daemontools/sixtySecondStatmonRunScript
+    dest="{{daemontools_template_dir}}/gs_statmon-60/run"
+    mode=0755
+    
+- name: copy in the log run script
+  copy:
+    src=daemontools/logRunScript
+    dest="{{daemontools_template_dir}}/gs_statmon-60/log/run"
+    mode=0755

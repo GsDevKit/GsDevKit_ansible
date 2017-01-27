@@ -1,0 +1,7 @@
+---
+es_version: 0.90.5
+logstash_version: 1.2.2
+logstash_file: "logstash-{{logstash_version}}-flatjar.jar"
+logstash_url: "https://download.elasticsearch.org/logstash/logstash/{{logstash_file}}"
+kibana_domain: kibana
+kibana_port: 8081

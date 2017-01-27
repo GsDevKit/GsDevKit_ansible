@@ -1,0 +1,14 @@
+#!/bin/bash
+sudo svc -d /etc/service/*
+/opt/scripts/gemstoneStop
+sudo cp /opt/gemstone/product/seaside/data/extent0.dbf /opt/gemstone/product/seaside/data/extent0.dbf.bak
+sudo rm /opt/gemstone/product/seaside/data/tranlog*.dbf
+sudo unzip /opt/gemstone/product/seaside/data/extent0.zip -d /opt/gemstone/product/seaside/data/
+sudo chown deploy:deploy /opt/gemstone/product/seaside/data/extent0.dbf
+sudo service elasticsearch stop
+sudo svc -u /etc/service/gsNetldi
+sudo svc -u /etc/service/gsGemstone
+sudo svc -u /etc/service/gs_*
+sudo service elasticsearch start
+sudo svstat /etc/service/*
+gslist -lcv
