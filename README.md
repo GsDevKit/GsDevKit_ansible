@@ -27,6 +27,7 @@ This is a git submodule. I'm not sure thats the best thing to do for this.  Down
 At one time I was using elasticsearch, logstash, and kibana to manage all the logs but lost interest in maintaining my set up and so this role kind of does that but there are probably better ways to get that done that have been invetned in the few years since I last had it working.
 
 #Todo
+ - nagios or monit to watch for out of disk errors with tranlogs and 1-second/60-second stats.
  - I think the letsencrypt stuff works but am not positive
  - finish/verify tarsnap backup install
  - hot standby
