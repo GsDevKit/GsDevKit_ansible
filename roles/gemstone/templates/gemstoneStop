@@ -6,5 +6,5 @@ pushd $stonePath $stonePath >& /dev/null
 source $stonePath/stone.env
 popd >& /dev/null
 
-stopGemstone
-stopnetldi
+$GEMSTONE/bin/stopGemstone
+$GEMSTONE/bin/stopnetldi

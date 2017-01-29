@@ -91,7 +91,7 @@
     - scripts
     
 - name: upload the gemstoneStop script
-  copy:
+  template:
     src=gemstoneStop
     dest=/opt/scripts/
     mode=0755
