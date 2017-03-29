@@ -6,7 +6,7 @@ daemontools_service_dir: /etc/service
 git_dir: /opt/git
 domain: "{{inventory_hostname}}" #change to something else if you've already set up dns
 seaside_app_name: seaside
-
+use_lets_encrypt: false
 
 #openssl key generation varaibles
 #you cannot get a cert for a domain you do not own.  

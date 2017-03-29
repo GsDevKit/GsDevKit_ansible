@@ -1,7 +1,9 @@
 #!/bin/bash
 #rm /opt/scripts/topaz.log
 #touch /opt/scripts/topaz.log
-rm /opt/scripts/seasideLoaded
+if [ -f /opt/scripts/seasideLoaded ]; then
+	rm /opt/scripts/seasideLoaded
+fi
 touch /opt/scripts/seasideLoaded
 export GS_HOME=/opt/git/GsDevKit_home/
 source ${GS_HOME}/bin/defGsDevKit.env

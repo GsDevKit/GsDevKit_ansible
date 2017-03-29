@@ -31,8 +31,8 @@
 
 - include: geoip.yml
 
-- include: letsEncrypt.yml
-
+- include: letsEncrypt.yml 
+  tags: lets_encrypt
   
 - name: copy in the nginx main conf file
   copy:

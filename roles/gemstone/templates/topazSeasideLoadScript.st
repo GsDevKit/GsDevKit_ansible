@@ -3,7 +3,7 @@ set gemstone seaside user DataCurator password swordfish
 login
 run
 |autoCommit autoMigrate|
-(GsFile openWriteOnServer:'/opt/scripts/seasideLoaded') nextPutAll:'1'; close.
+(GsFile openWriteOnServer: '/opt/scripts/seasideLoaded') nextPutAll: '1'; close.
 autoCommit:= MCPlatformSupport autoCommit.
 autoMigrate:= MCPlatformSupport autoMigrate.
 MCPlatformSupport autoCommit: true.
@@ -11,11 +11,11 @@ MCPlatformSupport autoMigrate: true.
 
 MCPlatformSupport commitOnAlmostOutOfMemoryDuring: [
                   Metacello new     
-                     baseline: {{project_name}};
-                     repository: {{project_repository}};
+                     baseline: '{{project_name}}';
+                     repository: '{{project_repository}}';
                      onConflict: [:ex | ex allow];
-                     onLock: [:ex | honor];
-                     load
+                     onLock: [:ex | ex honor];
+                     load: #('Core' 'Examples' 'Zinc-Seaside' 'REST' 'Seaside-Adaptors-FastCGI')
        
 ].
 System commitTransaction.
